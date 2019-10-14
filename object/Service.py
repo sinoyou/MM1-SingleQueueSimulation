@@ -24,13 +24,13 @@ class Service:
         """
         square = 0
         for record in self.record:
-            if time < record.leave_time:
+            if time > record.leave_time:
                 square += (record.leave_time - record.enter_time)
-            elif record.enter_time < time < record.leave_time:
+            elif record.enter_time <= time <= record.leave_time:
                 square += time - record.enter_time
             else:
                 break
-        return square / time
+        return square / time if time != 0 else 0
 
     def dump_and_load(self, customer):
         """
@@ -40,6 +40,7 @@ class Service:
         """
         # 结束上一个顾客服务（如有）
         if self.current_serving:
+            self.current_serving.finish_service(time=self.timer.get_time())
             print("[DEBUG] {:.5f} customer service finished.".format(self.timer.get_time()))
             # 错误检查，服务时间是否对上了
             expected_time = self.current_serving.customer.service + self.current_serving.customer.begin_service_time

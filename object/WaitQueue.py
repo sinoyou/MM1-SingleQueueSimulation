@@ -32,12 +32,15 @@ class WaitQueue:
         for record in self.record:
             if record.leave_time < time:
                 square += record.leave_time - record.enter_time
-            elif record.enter_time < time < record.leave_time:
+            elif record.enter_time <= time <= record.leave_time:
                 square += time - record.enter_time
         return square / time if time > 0 else 0
 
 
 class WaitRecord:
+    """
+    排队记录单，记录了详细的排队细节：顾客是谁？进入队伍时间？离开队伍时间？
+    """
     def __init__(self, customer, enter_time):
         self.enter_time = enter_time
         self.leave_time = None

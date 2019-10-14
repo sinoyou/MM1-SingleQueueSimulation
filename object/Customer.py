@@ -1,5 +1,5 @@
 class Customer:
-    def __init__(self, id, timer, arrive, service):
+    def __init__(self, id, timer, arrive, arrive_inter, service):
         """
         顾客类
         :param timer: 全局计时器
@@ -9,6 +9,7 @@ class Customer:
         self.id = id
         self.timer = timer
         self.arrive = arrive
+        self.arrive_inter = arrive_inter
         self.service = service
 
         self.begin_wait_time = None  # optional
