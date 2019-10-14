@@ -1,5 +1,6 @@
 from object.Customer import Customer
 from time_support.Timer import Timer
+from main.utils import debug_print
 
 
 class Service:
@@ -41,11 +42,11 @@ class Service:
         # 结束上一个顾客服务（如有）
         if self.current_serving:
             self.current_serving.finish_service(time=self.timer.get_time())
-            print("[DEBUG] {:.5f} customer service finished.".format(self.timer.get_time()))
+            debug_print("[DEBUG] {:.5f} customer service finished.".format(self.timer.get_time()))
             # 错误检查，服务时间是否对上了
             expected_time = self.current_serving.customer.service + self.current_serving.customer.begin_service_time
             if abs(self.timer.get_time() - expected_time) > 0.00001:
-                print("[Error]: Current Time didn't match expected service time.")
+                debug_print("[Error]: Current Time didn't match expected service time.")
 
         # 开始当前乘客服务 (如有)
         if not customer:
