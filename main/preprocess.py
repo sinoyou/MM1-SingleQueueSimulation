@@ -51,16 +51,16 @@ class Global:
 
     def customers_generate(self):
         # 定义<internal>随机数生成器和<service>随机数生成器
-        inter_gen = RandomTimeGenerator(self.mean_inter_arrival, self.number_of_customs, "poisson")
+        inter_gen = RandomTimeGenerator(self.mean_inter_arrival, self.number_of_customs, "exp")
         service_gen = RandomTimeGenerator(self.mean_service, self.number_of_customs, "exp")
         cur_time = 0
         for i in range(0, self.number_of_customs):
             inter = inter_gen.next()
             service_time = service_gen.next()
-            cur_time += inter
             c = Customer(id=i, timer=self.timer, arrive=cur_time, arrive_inter=inter,
                          service=service_time)
             self.custom_list.append(c)
+            cur_time += inter
             debug_print("Customer {} arrival {:.5f} service {:.5f}".format(i, cur_time, service_time))
 
     def simulate(self):
@@ -136,9 +136,9 @@ class Global:
         plt.ylabel("average customers in queue")
         plt.title("Average Number Of Customers in Queue By time")
         ave_customer = []
-        for i in range(0, int(self.timer.get_time())):
+        for i in range(1, int(self.timer.get_time())):
             ave_customer.append(self.wait_queue.get_ave_wait(time=i))
-        plt.plot(range(0, int(self.timer.get_time())), ave_customer)
+        plt.plot(range(1, int(self.timer.get_time())), ave_customer)
 
         # 服务器平均利用率
         plt.subplot(3, 2, 4)
@@ -147,9 +147,9 @@ class Global:
         plt.title("Average Service Time By time")
         for service in self.service_list:
             ave_service = []
-            for i in range(0, int(self.timer.get_time())):
+            for i in range(1, int(self.timer.get_time())):
                 ave_service.append(service.get_ave_usage(i))
-            plt.plot(range(0, int(self.timer.get_time())), ave_service)
+            plt.plot(range(1, int(self.timer.get_time())), ave_service)
 
         # 顾客去留情况
         plt.subplot(3, 1, 3)
@@ -244,5 +244,32 @@ class Global:
         plt.subplot(1, 2, 2)
         plt.title("No Service Trend")
         plt.plot(internal_mean_list, no_service_list)
+
+        plt.show()
+
+    # 任务: 调整输入参数的入口 - 服务窗口数量
+    def task_parameter_of_service_num(self, x, y, z, m, service_num_list):
+        # 尝试不同的服务时间对均值的影响
+        mean_length_list = []
+        no_service_list = []
+        for service_num in service_num_list:
+            self.initial_parameters(x, y, z, m, service_num)
+            self.service_generate()
+            self.customers_generate()
+            self.simulate()
+            mean_length, no_service = self.report_print()
+            mean_length_list.append(mean_length)
+            no_service_list.append(no_service)
+
+        plt.style.use('seaborn')
+        plt.figure(figsize=(10, 6))
+
+        plt.subplot(1, 2, 1)
+        plt.title("Mean Service Length Trend")
+        plt.plot(service_num_list, mean_length_list)
+
+        plt.subplot(1, 2, 2)
+        plt.title("No Service Trend")
+        plt.plot(service_num_list, no_service_list)
 
         plt.show()

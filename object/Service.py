@@ -30,7 +30,7 @@ class Service:
             elif record.enter_time <= time <= record.leave_time:
                 square += time - record.enter_time
             else:
-                break
+                pass
         return square / time if time != 0 else 0
 
     def dump_and_load(self, customer):
