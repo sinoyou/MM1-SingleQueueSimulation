@@ -10,3 +10,6 @@ class Timer:
 
     def forward(self, time):
         self.time = time
+
+    def reset(self):
+        self.time = 0

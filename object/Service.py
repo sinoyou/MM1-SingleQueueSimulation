@@ -17,6 +17,21 @@ class Service:
     def isBusy(self):
         return self.busy
 
+    def get_ave_usage(self, time):
+        """
+        生成该服务器的利用率
+        :return: usage
+        """
+        square = 0
+        for record in self.record:
+            if time < record.leave_time:
+                square += (record.leave_time - record.enter_time)
+            elif record.enter_time < time < record.leave_time:
+                square += time - record.enter_time
+            else:
+                break
+        return square / time
+
     def dump_and_load(self, customer):
         """
         结束当前乘客的服务，并载入新的服务对象（若为None则无）
