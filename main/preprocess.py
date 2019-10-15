@@ -51,7 +51,7 @@ class Global:
 
     def customers_generate(self):
         # 定义<internal>随机数生成器和<service>随机数生成器
-        inter_gen = RandomTimeGenerator(self.mean_inter_arrival, self.number_of_customs, "exp")
+        inter_gen = RandomTimeGenerator(self.mean_inter_arrival, self.number_of_customs, "exp", shuffle=False)
         service_gen = RandomTimeGenerator(self.mean_service, self.number_of_customs, "exp")
         cur_time = 0
         for i in range(0, self.number_of_customs):
@@ -82,6 +82,7 @@ class Global:
                 # 如果当前存在空闲窗口，则不排队直接去
                 if len(free_service) > 0:
                     # 选择一个空闲窗口， 前去服务并计算结束时间， 建立FINISH类型的事件队列
+                    np.random.shuffle(free_service)
                     target_service = free_service[0]
                     next_finish_time = target_service.dump_and_load(customer)
                     finish_event = Event(object_=target_service, time=next_finish_time, event_type="FINISH")
@@ -152,17 +153,18 @@ class Global:
             plt.plot(range(1, int(self.timer.get_time())), ave_service)
 
         # 顾客去留情况
-        plt.subplot(3, 1, 3)
-        plt.title("Served Customers's Distribution By time")
-        for (i, custom) in enumerate(self.custom_list):
-            if custom.begin_service_time:
-                time_start = int(custom.arrive)
-                time_end = int(custom.begin_service_time + custom.service)
-                x = range(time_start, time_end + 1)
-                y = np.full((time_end - time_start + 1), i + 1)
-                plt.scatter(x, y)
-            else:
-                plt.scatter(custom.arrive, i + 1)
+        if len(self.custom_list) <= 200:
+            plt.subplot(3, 1, 3)
+            plt.title("Served Customers's Distribution By time")
+            for (i, custom) in enumerate(self.custom_list):
+                if custom.begin_service_time:
+                    time_start = int(custom.arrive)
+                    time_end = int(custom.begin_service_time + custom.service)
+                    x = range(time_start, time_end + 1)
+                    y = np.full((time_end - time_start + 1), i + 1)
+                    plt.scatter(x, y)
+                else:
+                    plt.scatter(custom.arrive, i + 1)
 
         plt.show()
 
@@ -194,30 +196,36 @@ class Global:
         self.report_plot()  # 显示可视化结果
 
     # 任务: 调整输入参数的入口 - 平均服务时长
-    def task_parameter_of_service_mean(self, x, service_mean_list, z, m, n):
-        # 尝试不同的服务时间对均值的影响
-        mean_length_list = []
-        no_service_list = []
-        for service_mean in service_mean_list:
-            self.initial_parameters(x, service_mean, z, m, n)
-            self.service_generate()
-            self.customers_generate()
-            self.simulate()
-            mean_length, no_service = self.report_print()
-            mean_length_list.append(mean_length)
-            no_service_list.append(no_service)
-
+    def task_parameter_of_service_mean(self, x, service_mean_list, z, m, service_num_list):
         plt.style.use('seaborn')
         plt.figure(figsize=(10, 6))
 
+        # 尝试不同的服务时间对均值的影响
+        list_by_service = []
+        for service_num in service_num_list:
+            mean_length_list = []
+            no_service_list = []
+            for service_mean in service_mean_list:
+                self.initial_parameters(x, service_mean, z, m, service_num)
+                self.service_generate()
+                self.customers_generate()
+                self.simulate()
+                mean_length, no_service = self.report_print()
+                mean_length_list.append(mean_length)
+                no_service_list.append(no_service)
+            list_by_service.append((service_num, mean_length_list, no_service_list))
+
         plt.subplot(1, 2, 1)
         plt.title("Mean Service Length Trend")
-        plt.plot(service_mean_list, mean_length_list)
+        for (service_num, mean_length_list, no_service_list) in list_by_service:
+            plt.plot(service_mean_list, mean_length_list, label=str(service_num))
 
         plt.subplot(1, 2, 2)
         plt.title("No Service Trend")
-        plt.plot(service_mean_list, no_service_list)
+        for (service_num, mean_length_list, no_service_list) in list_by_service:
+            plt.plot(service_mean_list, no_service_list, label=str(service_num))
 
+        plt.legend()
         plt.show()
 
     # 任务: 调整输入参数的入口 - 平均到达时间间隔
@@ -248,28 +256,34 @@ class Global:
         plt.show()
 
     # 任务: 调整输入参数的入口 - 服务窗口数量
-    def task_parameter_of_service_num(self, x, y, z, m, service_num_list):
-        # 尝试不同的服务时间对均值的影响
-        mean_length_list = []
-        no_service_list = []
-        for service_num in service_num_list:
-            self.initial_parameters(x, y, z, m, service_num)
-            self.service_generate()
-            self.customers_generate()
-            self.simulate()
-            mean_length, no_service = self.report_print()
-            mean_length_list.append(mean_length)
-            no_service_list.append(no_service)
-
+    def task_parameter_of_queue_size(self, x, y, z, queue_size_list, service_num_list):
         plt.style.use('seaborn')
         plt.figure(figsize=(10, 6))
 
+        # 尝试不同的服务时间对均值的影响
+        list_by_service = []
+        for service_num in service_num_list:
+            mean_length_list = []
+            no_service_list = []
+            for queue_size in queue_size_list:
+                self.initial_parameters(x, y, z, queue_size, service_num)
+                self.service_generate()
+                self.customers_generate()
+                self.simulate()
+                mean_length, no_service = self.report_print()
+                mean_length_list.append(mean_length)
+                no_service_list.append(no_service)
+            list_by_service.append((service_num, mean_length_list, no_service_list))
+
         plt.subplot(1, 2, 1)
         plt.title("Mean Service Length Trend")
-        plt.plot(service_num_list, mean_length_list)
+        for (service_num, mean_length_list, no_service_list) in list_by_service:
+            plt.plot(queue_size_list, mean_length_list, label=str(service_num))
 
         plt.subplot(1, 2, 2)
         plt.title("No Service Trend")
-        plt.plot(service_num_list, no_service_list)
+        for (service_num, mean_length_list, no_service_list) in list_by_service:
+            plt.plot(queue_size_list, no_service_list, label=str(service_num))
 
+        plt.legend()
         plt.show()

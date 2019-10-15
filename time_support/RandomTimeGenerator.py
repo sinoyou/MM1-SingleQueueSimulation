@@ -9,15 +9,16 @@ class RandomTimeGenerator:
     1. 多类随机分布生成器
     """
 
-    def __init__(self, mean, num, dis_type):
+    def __init__(self, mean, num, dis_type, shuffle=True):
         self.mean = mean
         self.num = num
         self.pointer = 0
-        self.random_candidate = self.__random_sample__(mean, num, dis_type)
+        self.random_candidate = self.__random_sample__(mean, num, dis_type, shuffle)
         self.dis_type = dis_type
+        self.shuffle = shuffle
 
     @staticmethod
-    def __random_sample__(mean, num, dis_type):
+    def __random_sample__(mean, num, dis_type, shuffle=True):
         """
         根据平均数和数量生成指定的随机数备选列表，这样做的目的是为了使得随机数尽可能接近均值
         :param mean: 均值
@@ -27,11 +28,13 @@ class RandomTimeGenerator:
         """
         if dis_type == "poisson":
             distribution = np.random.poisson(mean, num)
-            random.shuffle(distribution)
+            if shuffle:
+                random.shuffle(distribution)
             return distribution
         elif dis_type == "exp":
             distribution = np.random.exponential(mean, num)
-            random.shuffle(distribution)
+            if shuffle:
+                random.shuffle(distribution)
             return distribution
         else:
             print("[ERROR] Unknown random distribution.")
@@ -41,7 +44,7 @@ class RandomTimeGenerator:
         if self.pointer >= self.num:
             print("[WARNING]: times of next call exceed predefined number.")
             self.pointer = 0
-            self.random_candidate = self.__random_sample__(self.mean, self.num, self.dis_type)
+            self.random_candidate = self.__random_sample__(self.mean, self.num, self.dis_type, self.shuffle)
         temp = self.random_candidate[self.pointer]
         self.pointer += 1
         return temp
